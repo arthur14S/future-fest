@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Liber — Chat ODS 4</title>
+
+<style>
+  :root{
+    --card-radius:16px;
+    --muted:#6f6170;
+    --accent1:#ff6a96;
+    --accent2:#ff3fb6;
+    --chat-pink: #fff0f6;
+    --chat-pink-strong:#ffd6eb;
+    --glass-white: rgba(255,255,255,0.92);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#fff;
+    overflow:hidden;
+  }
+
+  /* Fundo cobrindo toda a tela (imagem nítida, sem filtros) */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:url("./img/imagem.png");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    z-index:-1;
+  }
+
+  /* Estrutura principal */
+  .chat-frame{
+    width:100%;
+    max-width:1100px;
+    height:88vh;
+    display:grid;
+    grid-template-columns:420px 1fr;
+    border-radius:var(--card-radius);
+    overflow:hidden;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92));
+    box-shadow:0 20px 60px rgba(20,16,40,0.25);
+  }
+
+  /* Left panel */
+  .left-panel{
+    padding:26px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    border-right:1px solid rgba(0,0,0,0.05);
+    background: rgba(255,255,255,0.95);
+  }
+  .logo{display:flex;align-items:center;gap:12px}
+  /* avatar lateral (agora com IMG) */
+  .avatar{
+    width:72px;height:72px;border-radius:14px;
+    background:linear-gradient(135deg,var(--accent1),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 30px rgba(255,77,154,0.14);
+    flex:0 0 72px;
+    overflow:hidden;
+  }
+  .avatar img{
+    width:58px;height:58px;object-fit:contain;display:block;
+  }
+
+  .brand .title{font-weight:800;font-size:18px;color:#211826}
+  .brand .subtitle{font-size:13px;color:var(--muted);margin-top:2px}
+  .about{color:#3a2f37;font-size:14px;line-height:1.45}
+  .note{font-size:12px;color:var(--muted);background:rgba(255,255,255,0.88);padding:10px;border-radius:10px}
+  .left-actions{margin-top:auto;display:flex;gap:10px}
+  .btn{padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700}
+  .btn.ghost{background:transparent;border:1px solid rgba(30,20,30,0.06);color:#3a2f37}
+  .btn.primary{background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;box-shadow:0 12px 30px rgba(255,77,154,0.14)}
+
+  /* Right panel (chat) */
+  .right-panel{display:flex;flex-direction:column;overflow:hidden}
+
+  /* topo do chat */
+  .chat-top{
+    display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(0,0,0,0.04);
+    background:var(--glass-white);
+  }
+
+  /* h-avatar agora usa IMG */
+  .h-avatar{
+    width:46px;height:46px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent1),var(--accent2));
+    display:flex;align-items:center;justify-content:center;flex:0 0 46px;
+    box-shadow:0 8px 22px rgba(255,77,154,0.14);
+    overflow:hidden;
+  }
+  .h-avatar img{
+    width:28px;height:28px;object-fit:contain;display:block;
+  }
+
+  .h-text{display:flex;flex-direction:column}
+  .h-text .name{font-weight:800;color:#241624}
+  .h-text .desc{font-size:12px;color:var(--muted)}
+
+  .back-link{margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none;padding:8px;border-radius:8px}
+  .back-link:hover{background:rgba(255,255,255,0.6)}
+
+  /* Área de mensagens - agora com fundo rosa visível */
+  .messages-wrap{
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    background: linear-gradient(180deg, var(--chat-pink), var(--chat-pink-strong));
+    padding:22px;
+    gap:14px;
+    overflow:auto;
+  }
+
+  /* Espaço vazio central indicando que o chat está vazio */
+  .empty-state{
+    margin:auto;
+    max-width:720px;
+    text-align:center;
+    color:#4a3240;
+    opacity:0.95;
+  }
+  .empty-state h2{font-size:20px;margin-bottom:8px}
+  .empty-state p{font-size:14px;color:var(--muted)}
+
+  /* Sugestões */
+  .suggestions{
+    padding:12px 20px;border-top:1px solid rgba(0,0,0,0.04);
+    display:flex;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,0.94);
+  }
+  .chip{
+    padding:8px 12px;border-radius:999px;background:linear-gradient(180deg,#fff,#fff0);border:1px solid rgba(0,0,0,0.03);
+    font-weight:700;font-size:13px;color:#3b2d36;cursor:default;
+  }
+
+  /* Composer (permanece em baixo, visual) */
+  .composer{
+    padding:14px 18px;border-top:1px solid rgba(0,0,0,0.04);
+    display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.96);
+  }
+  .composer .input{
+    flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(0,0,0,0.06);
+    font-size:15px;color:#2b1623;background:transparent;height:46px;resize:none;
+  }
+  .composer .send{
+    background:linear-gradient(135deg,var(--accent1),var(--accent2));border-radius:12px;border:none;padding:10px 14px;color:#fff;font-weight:800;
+    box-shadow:0 12px 30px rgba(255,77,154,0.12);
+  }
+
+  /* Responsividade */
+  @media (max-width:980px){
+    .chat-frame{grid-template-columns:1fr;height:94vh}
+    .left-panel{order:2;padding:16px}
+    .right-panel{order:1}
+  }
+  @media (max-width:480px){
+    .messages-wrap{padding:14px}
+    .chat-top{padding:12px}
+    .composer{padding:10px}
+  }
+
+  /* foco acessível */
+  .btn:focus, .chip:focus, .back-link:focus {outline:3px solid rgba(255,110,170,0.18);outline-offset:2px;}
+</style>
+</head>
+<body>
+
+  <div class="chat-frame" role="application" aria-label="Liber — Chat educativo sobre ODS 4">
+    <!-- Painel esquerdo -->
+    <aside class="left-panel" aria-labelledby="liber-title">
+      <div class="logo">
+        <div class="avatar" aria-hidden="true">
+          <!-- troque o arquivo abaixo por img/livro.png (ou outro nome que preferir) -->
+          <img src="./img/cute-pink-kawaii-book-with-its-eyes-open-vector-clipart_621135_wh860.png" alt="Ícone do livrinho">
+        </div>
+
+        <div class="brand">
+          <div id="liber-title" class="title">Liber</div>
+          <div class="subtitle">IA — ODS 4: Educação de Qualidade</div>
+        </div>
+      </div>
+
+      <p class="about">
+        A Liber ajuda a responder perguntas sobre o ODS 4 e apoiar projetos de educação inclusiva.
+        Esta interface é apenas visual (HTML + CSS), sem JavaScript.
+      </p>
+
+      <div class="note">
+        <strong>Como usar</strong>
+        <div class="hint">Escolha uma sugestão ou escreva sua pergunta no campo abaixo (integração com IA será feita no backend).</div>
+      </div>
+
+      <div class="left-actions">
+        <a href="index.html" class="btn ghost" title="Voltar">Voltar</a>
+        <button class="btn primary" title="Integração futura">Iniciar conversa</button>
+      </div>
+    </aside>
+
+    <!-- Painel direito - chat -->
+    <section class="right-panel" aria-labelledby="chat-heading">
+      <header class="chat-top">
+        <div class="h-avatar" aria-hidden="true">
+          <!-- troque o arquivo abaixo por img/livro.png (ou use uma versão menor) -->
+          <img src="./img/cute-pink-kawaii-book-with-its-eyes-open-vector-clipart_621135_wh860.png" alt="Liber">
+        </div>
+
+        <div class="h-text">
+          <span class="name">Liber</span>
+          <span class="desc">Assistente educativo — ODS 4</span>
+        </div>
+
+        <a class="back-link" href="index.html" title="Voltar">Voltar</a>
+      </header>
+
+      <!-- área das mensagens com fundo rosa -->
+      <main class="messages-wrap" id="chat-messages" role="log" aria-live="polite">
+        <div class="empty-state" aria-hidden="false">
+          <h2>Inicie sua conversa com a Liber</h2>
+          <p>Escolha uma sugestão abaixo ou escreva sua pergunta no campo de envio.</p>
+        </div>
+      </main>
+
+      <!-- sugestões -->
+      <div class="suggestions" aria-label="Sugestões rápidas">
+        <div class="chip" tabindex="0">O que é ODS 4?</div>
+        <div class="chip" tabindex="0">Atividades para alfabetização</div>
+        <div class="chip" tabindex="0">Projeto de feira</div>
+        <div class="chip" tabindex="0">Como envolver a comunidade</div>
+      </div>
+
+      <!-- composer (permanece abaixo, com fundo claro sobre o rosa do chat) -->
+      <div class="composer" role="region" aria-label="Campo para escrever mensagem (estático)">
+        <textarea class="input" placeholder="Escreva sua pergunta para a Liber..." aria-label="Campo de mensagem" disabled></textarea>
+        <button class="send" aria-hidden="true">Enviar</button>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>
